@@ -102,7 +102,7 @@ const Dashboard: React.FC = () => {
         </p>
 
         <div className="mt-4">
-          <Link to="/LandingPage">
+          <Link to="/landing">
             <Button variant="outline" icon={<ArrowRight className="h-4 w-4" />}>
               Go to Landing Page
             </Button>
