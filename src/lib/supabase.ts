@@ -46,3 +46,17 @@ export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 };
+
+export const logVoiceReminder = async ({ taskId, message, method }: { taskId?: string, message: string, method: string }) => {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('User not authenticated');
+  const { error } = await supabase.from('voice_reminders').insert([
+    {
+      user_id: user.id,
+      task_id: taskId || null,
+      message,
+      method,
+    },
+  ]);
+  if (error) throw error;
+};

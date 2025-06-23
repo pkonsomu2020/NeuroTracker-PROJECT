@@ -52,15 +52,15 @@ const FocusTimer: React.FC = () => {
           completeTask(currentTaskId);
           setShowMoodTracker(true);
         }
-        
         startBreak();
         // Alert sound for focus end
         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
         audio.play();
-        
         // Voice announcement if enabled
         if (settings.voiceReminders && currentTask) {
-          speakText(`Focus session complete. Time for a ${timerSettings.breakDuration} minute break.`, true);
+          (async () => {
+            await speakText(`Focus session complete. Time for a ${timerSettings.breakDuration} minute break.`, true, currentTaskId);
+          })();
         }
       }
     }
@@ -86,14 +86,13 @@ const FocusTimer: React.FC = () => {
     ? ((timerSettings.breakDuration * 60 - timeRemaining) / (timerSettings.breakDuration * 60)) * 100
     : ((timerSettings.focusDuration * 60 - timeRemaining) / (timerSettings.focusDuration * 60)) * 100;
   
-  const handleStartFocus = (taskId: string) => {
+  const handleStartFocus = async (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
       startTimer(taskId, task.duration);
-      
       // Voice announcement if enabled
       if (settings.voiceReminders) {
-        speakText(`Starting focus on ${task.name} for ${task.duration} minutes`, true);
+        await speakText(`Starting focus on ${task.name} for ${task.duration} minutes`, true, taskId);
       }
     }
   };

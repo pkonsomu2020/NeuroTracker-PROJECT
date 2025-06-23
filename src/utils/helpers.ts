@@ -1,5 +1,7 @@
 import { format, addMinutes, setHours, setMinutes } from 'date-fns';
 import { Task, Routine } from '../types';
+import { playTextToSpeech } from '../lib/elevenlabs';
+import { logVoiceReminder } from '../lib/supabase';
 
 export const formatTime = (date: Date): string => {
   return format(date, 'h:mm a');
@@ -62,12 +64,21 @@ export const duplicateRoutine = (routine: Routine): Routine => {
   };
 };
 
-export const speakText = (text: string, enabled: boolean): void => {
-  if (!enabled || !window.speechSynthesis) return;
-  
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.9; // Slightly slower than default
-  window.speechSynthesis.speak(utterance);
+export const speakText = async (text: string, enabled: boolean, taskId?: string): Promise<void> => {
+  if (!enabled) return;
+  try {
+    // Try ElevenLabs first
+    await playTextToSpeech(text);
+    await logVoiceReminder({ taskId, message: text, method: 'elevenlabs' });
+  } catch (err) {
+    // Fallback to browser TTS if ElevenLabs fails
+    if (window.speechSynthesis) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+      await logVoiceReminder({ taskId, message: text, method: 'browser' });
+    }
+  }
 };
 
 export const getRandomEmoji = (): string => {

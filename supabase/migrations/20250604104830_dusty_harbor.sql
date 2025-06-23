@@ -161,6 +161,24 @@ CREATE POLICY "Users can CRUD own mood entries"
   TO authenticated
   USING (auth.uid() = user_id);
 
+-- Create voice_reminders table
+CREATE TABLE IF NOT EXISTS voice_reminders (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+  task_id uuid REFERENCES tasks(id) ON DELETE SET NULL,
+  message text NOT NULL,
+  method text NOT NULL, -- 'elevenlabs' or 'browser'
+  triggered_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE voice_reminders ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can CRUD own voice reminders"
+  ON voice_reminders
+  FOR ALL
+  TO authenticated
+  USING (auth.uid() = user_id);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS tasks_user_id_idx ON tasks(user_id);
 CREATE INDEX IF NOT EXISTS tasks_scheduled_time_idx ON tasks(scheduled_time);
@@ -168,3 +186,5 @@ CREATE INDEX IF NOT EXISTS routines_user_id_idx ON routines(user_id);
 CREATE INDEX IF NOT EXISTS routine_tasks_routine_id_idx ON routine_tasks(routine_id);
 CREATE INDEX IF NOT EXISTS mood_entries_user_id_idx ON mood_entries(user_id);
 CREATE INDEX IF NOT EXISTS mood_entries_task_id_idx ON mood_entries(task_id);
+CREATE INDEX IF NOT EXISTS voice_reminders_user_id_idx ON voice_reminders(user_id);
+CREATE INDEX IF NOT EXISTS voice_reminders_task_id_idx ON voice_reminders(task_id);
